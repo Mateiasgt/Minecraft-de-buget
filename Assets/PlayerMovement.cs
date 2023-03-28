@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    bool Key_d,Key_a,Key_w,Key_s;
+    bool Key_d,Key_a,Key_w,Key_s,jumping,GroundChecking;
     //store if a key is pressed
 
     public float Left_Right,Forward_Backward=200f;
@@ -12,6 +13,10 @@ public class PlayerMovement : MonoBehaviour
     
     //Rigidbody it`s a componet for different physics
     public Rigidbody rb;
+    public float jumpAmount;
+    private float jumpTime;
+    float buttonTime=1.3f;
+    
     
     void Update()
     {
@@ -39,8 +44,19 @@ public class PlayerMovement : MonoBehaviour
         }else{
             Key_s=false;
         }
-        
+        if(Input.GetKeyDown("space")){
+            jumping = true;
+            jumpTime=0;
+        }
+        if(Input.GetKeyUp("space")||jumpTime>buttonTime){
+            jumping=false;
+            GroundChecking=false;
+        }
+        if(jumping){
+            jumpTime+=Time.deltaTime;
+        }
     }
+    
    
 
     //We use FixedUpdate to mess with physics
@@ -62,5 +78,24 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(0,0,-Forward_Backward*Time.deltaTime);
             
         }
+        if(jumping&&GroundChecking){
+            rb.velocity=new Vector3(rb.velocity.x,jumpAmount,0);
+            
+        }
+        
     }
+   
+    
+    private void OnCollisionStay(Collision collision)
+    {
+         
+           if(collision.gameObject.TryGetComponent<Tags>(out var tags)){
+            if(tags.HasTag("Ground")){
+                GroundChecking=true;
+            }
+           }
+    
+    }
+    
+    
 }
